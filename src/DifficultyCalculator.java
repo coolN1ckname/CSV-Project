@@ -1,6 +1,6 @@
-public class DifficultyCalculator {
+class DifficultyCalculator {
     private String name;
-    private Integer grades;
+    private List<Integer> grades;
 
     public DifficultyCalculator(Theme theme) {
         this.name = theme.getName();
@@ -11,7 +11,7 @@ public class DifficultyCalculator {
         return name;
     }
 
-    public Integer getGrades() {
+    public List<Integer> getGrades() {
         return grades;
     }
 }
