@@ -1,30 +1,80 @@
-import java.util.List;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
 
 public class Theme {
     private String name;
-    private List<Task> tasks;
-    private List<Integer> grades;
+    private int totalScore; // Общая оценка
 
-    public Theme(String name, List<Task> tasks, List<Integer> grades) {
+    public Theme(String name) {
         this.name = name;
-        this.tasks = tasks;
-        this.grades = grades;
+        this.totalScore = 0;
     }
 
     public String getName() {
         return name;
     }
 
-    public List<Task> getTasks() {
-        return tasks;
+    public void addScore(int score) {
+        totalScore += score;
     }
 
-    public List<Integer> getGrades() {
-        return grades;
+    public int getTotalScore() {
+        return totalScore;
     }
 
-    public double getAverageGrade() {
+    public static List<Theme> parseCSV(String csvFile, List<String> themeNames, int[][] indicesToExtract) {
+        List<Theme> themes = new ArrayList<>();
+        for (String themeName : themeNames) {
+            themes.add(new Theme(themeName));
+        }
 
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(csvFile), "UTF-8"))) {
+            String line;
+            boolean isFirstLine = true;
+
+            while ((line = br.readLine()) != null) {
+                System.out.println("Обрабатываем строку: " + line); // Вывод отладоччной строки
+                String[] values = line.split(";");
+
+                if (!isFirstLine) {
+                    // Удаление первых 6 элементов
+                    if (values.length > 6) {
+                        String[] studentData = Arrays.copyOfRange(values, 6, values.length);
+
+                        for (int i = 0; i < themes.size(); i++) {
+                            int score = 0;
+
+                            // Суммирование баллов по необходимым индексам
+                            for (int index : indicesToExtract[i]) {
+                                if (index < studentData.length) {
+                                    score += parseScore(studentData[index]);
+                                }
+                            }
+
+                            themes.get(i).addScore(score);
+                            System.out.println("Текущий счёт для темы " + themes.get(i).getName() + ": " + score);
+                        }
+                    }
+                }
+                isFirstLine = false; // Пропуск первой строки
+            }
+        } catch (IOException e) {
+            System.err.println("Ошибка при чтении файла: " + e.getMessage());
+        }
+
+        return themes;
+    }
+
+    private static int parseScore(String scoreStr) {
+        try {
+            return scoreStr.isEmpty() ? 0 : Integer.parseInt(scoreStr.trim());
+        } catch (NumberFormatException e) {
+            System.err.println("Недопустимое значение: " + scoreStr);
+            return 0; // Возвращение 0 для недопустимых значений
+        }
     }
 }
-
